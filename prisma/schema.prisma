@@ -29,6 +29,18 @@ model Session {
   user      User     @relation(fields: [userId], references: [id])
 }
 
+model AuthToken {
+  id         String   @id @default(cuid())
+  token      String   @unique
+  telegramId BigInt?
+  firstName  String?
+  lastName   String?
+  username   String?
+  confirmed  Boolean  @default(false)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+}
+
 model Quiz {
   id          String       @id @default(cuid())
   title       String

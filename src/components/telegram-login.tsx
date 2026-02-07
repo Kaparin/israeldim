@@ -1,55 +1,146 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+
+type Status = "idle" | "loading" | "waiting" | "confirmed" | "expired" | "error";
 
 export function TelegramLogin() {
-  const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const [status, setStatus] = useState<Status>("idle");
+  const [deepLink, setDeepLink] = useState("");
+  const [token, setToken] = useState("");
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const handleAuth = useCallback(
-    async (user: unknown) => {
-      try {
-        const res = await fetch("/api/auth/telegram", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(user),
-        });
-
-        if (res.ok) {
-          router.push("/dashboard");
-        }
-      } catch (error) {
-        console.error("Login error:", error);
-      }
-    },
-    [router]
-  );
+  const cleanup = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
-    const botUsername = process.env.NEXT_PUBLIC_BOT_USERNAME;
-    if (!botUsername || !containerRef.current) return;
+    return cleanup;
+  }, [cleanup]);
 
-    // Set callback on window
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).onTelegramAuth = handleAuth;
+  const startLogin = async () => {
+    setStatus("loading");
+    cleanup();
 
-    const script = document.createElement("script");
-    script.src = "https://telegram.org/js/telegram-widget.js?22";
-    script.setAttribute("data-telegram-login", botUsername);
-    script.setAttribute("data-size", "large");
-    script.setAttribute("data-onauth", "onTelegramAuth(user)");
-    script.setAttribute("data-request-access", "write");
-    script.async = true;
+    try {
+      const res = await fetch("/api/auth/token", { method: "POST" });
+      if (!res.ok) throw new Error("Failed to create token");
 
-    containerRef.current.innerHTML = "";
-    containerRef.current.appendChild(script);
+      const data = await res.json();
+      setDeepLink(data.deepLink);
+      setToken(data.token);
+      setStatus("waiting");
 
-    return () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      delete (window as any).onTelegramAuth;
-    };
-  }, [handleAuth]);
+      // Open bot in new tab
+      window.open(data.deepLink, "_blank");
 
-  return <div ref={containerRef} className="flex justify-center" />;
+      // Start polling
+      intervalRef.current = setInterval(async () => {
+        try {
+          const checkRes = await fetch(`/api/auth/check?token=${data.token}`);
+          const checkData = await checkRes.json();
+
+          if (checkData.confirmed) {
+            cleanup();
+            setStatus("confirmed");
+            router.push("/dashboard");
+          } else if (checkData.error === "expired") {
+            cleanup();
+            setStatus("expired");
+          }
+        } catch {
+          // Silently continue polling
+        }
+      }, 2000);
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {status === "idle" && (
+        <Button onClick={startLogin} size="lg" className="w-full">
+          Войти через Telegram
+        </Button>
+      )}
+
+      {status === "loading" && (
+        <Button disabled size="lg" className="w-full">
+          Подготовка...
+        </Button>
+      )}
+
+      {status === "waiting" && (
+        <div className="space-y-3 text-center">
+          <div className="flex items-center justify-center gap-2">
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <span className="text-sm text-muted-foreground">
+              Ожидаю подтверждение в Telegram...
+            </span>
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            Откройте бота и нажмите Start
+          </p>
+
+          <a
+            href={deepLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block text-sm text-primary underline"
+          >
+            Открыть бота ещё раз
+          </a>
+
+          <div className="pt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                cleanup();
+                setStatus("idle");
+              }}
+            >
+              Отмена
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {status === "confirmed" && (
+        <p className="text-center text-sm text-green-600">
+          Авторизация подтверждена! Перенаправляю...
+        </p>
+      )}
+
+      {status === "expired" && (
+        <div className="space-y-2 text-center">
+          <p className="text-sm text-destructive">
+            Время ожидания истекло
+          </p>
+          <Button onClick={startLogin} variant="outline" size="sm">
+            Попробовать снова
+          </Button>
+        </div>
+      )}
+
+      {status === "error" && (
+        <div className="space-y-2 text-center">
+          <p className="text-sm text-destructive">
+            Произошла ошибка
+          </p>
+          <Button onClick={startLogin} variant="outline" size="sm">
+            Попробовать снова
+          </Button>
+        </div>
+      )}
+    </div>
+  );
 }
