@@ -75,3 +75,14 @@ model TestResult {
   user        User     @relation(fields: [userId], references: [id])
   quiz        Quiz     @relation(fields: [quizId], references: [id])
 }
+
+model Translation {
+  id        String   @id @default(cuid())
+  sourceId  String
+  type      String
+  original  String
+  translated String
+  createdAt DateTime @default(now())
+
+  @@unique([sourceId, type])
+}

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const protectedPaths = ["/dashboard", "/quiz", "/admin"];
+const protectedPaths = ["/dashboard", "/quiz", "/admin", "/stats", "/questions"];
 
 function getJwtSecret() {
   const secret = process.env.JWT_SECRET;
@@ -34,5 +34,11 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/quiz/:path*", "/admin/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/quiz/:path*",
+    "/admin/:path*",
+    "/stats/:path*",
+    "/questions/:path*",
+  ],
 };

@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Noto_Sans_Hebrew } from "next/font/google";
+import { LocaleProvider } from "@/i18n/context";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,15 +14,22 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const notoHebrew = Noto_Sans_Hebrew({
+  variable: "--font-noto-hebrew",
+  subsets: ["hebrew"],
+  weight: ["400", "500", "600", "700"],
+});
+
 export const metadata: Metadata = {
-  title: "Quiz Platform",
-  description: "Тестирование с авторизацией через Telegram",
+  title: "ElectriQuiz — הכנה לרישיון חשמלאי",
+  description: "Подготовка к экзамену на лицензию электрика в Израиле",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -29,11 +38,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru">
+    <html lang="he" dir="rtl" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background`}
+        className={`${geistSans.variable} ${geistMono.variable} ${notoHebrew.variable} font-sans antialiased min-h-screen bg-background`}
+        style={{ fontFamily: "var(--font-geist-sans), var(--font-noto-hebrew), sans-serif" }}
       >
-        {children}
+        <LocaleProvider>{children}</LocaleProvider>
       </body>
     </html>
   );

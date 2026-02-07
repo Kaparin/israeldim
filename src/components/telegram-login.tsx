@@ -2,15 +2,17 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLocale } from "@/i18n/context";
 
 type Status = "idle" | "loading" | "waiting" | "confirmed" | "expired" | "error";
 
 export function TelegramLogin() {
   const router = useRouter();
+  const { t } = useLocale();
   const [status, setStatus] = useState<Status>("idle");
   const [deepLink, setDeepLink] = useState("");
-  const [token, setToken] = useState("");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const cleanup = useCallback(() => {
@@ -34,13 +36,10 @@ export function TelegramLogin() {
 
       const data = await res.json();
       setDeepLink(data.deepLink);
-      setToken(data.token);
       setStatus("waiting");
 
-      // Open bot in new tab
       window.open(data.deepLink, "_blank");
 
-      // Start polling
       intervalRef.current = setInterval(async () => {
         try {
           const checkRes = await fetch(`/api/auth/check?token=${data.token}`);
@@ -66,14 +65,19 @@ export function TelegramLogin() {
   return (
     <div className="space-y-4">
       {status === "idle" && (
-        <Button onClick={startLogin} size="lg" className="w-full">
-          Войти через Telegram
+        <Button
+          onClick={startLogin}
+          size="lg"
+          className="w-full min-h-12 text-base gap-2"
+        >
+          <Send className="size-5" />
+          {t.landing.login}
         </Button>
       )}
 
       {status === "loading" && (
-        <Button disabled size="lg" className="w-full">
-          Подготовка...
+        <Button disabled size="lg" className="w-full min-h-12 text-base">
+          {t.landing.loginLoading}
         </Button>
       )}
 
@@ -82,12 +86,12 @@ export function TelegramLogin() {
           <div className="flex items-center justify-center gap-2">
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             <span className="text-sm text-muted-foreground">
-              Ожидаю подтверждение в Telegram...
+              {t.landing.loginWaiting}
             </span>
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Откройте бота и нажмите Start
+            {t.landing.loginWaitingHint}
           </p>
 
           <a
@@ -96,7 +100,7 @@ export function TelegramLogin() {
             rel="noopener noreferrer"
             className="inline-block text-sm text-primary underline"
           >
-            Открыть бота ещё раз
+            {t.landing.loginOpenBot}
           </a>
 
           <div className="pt-2">
@@ -108,7 +112,7 @@ export function TelegramLogin() {
                 setStatus("idle");
               }}
             >
-              Отмена
+              {t.landing.loginCancel}
             </Button>
           </div>
         </div>
@@ -116,17 +120,17 @@ export function TelegramLogin() {
 
       {status === "confirmed" && (
         <p className="text-center text-sm text-green-600">
-          Авторизация подтверждена! Перенаправляю...
+          {t.landing.loginConfirmed}
         </p>
       )}
 
       {status === "expired" && (
         <div className="space-y-2 text-center">
           <p className="text-sm text-destructive">
-            Время ожидания истекло
+            {t.landing.loginExpired}
           </p>
           <Button onClick={startLogin} variant="outline" size="sm">
-            Попробовать снова
+            {t.landing.loginRetry}
           </Button>
         </div>
       )}
@@ -134,10 +138,10 @@ export function TelegramLogin() {
       {status === "error" && (
         <div className="space-y-2 text-center">
           <p className="text-sm text-destructive">
-            Произошла ошибка
+            {t.landing.loginError}
           </p>
           <Button onClick={startLogin} variant="outline" size="sm">
-            Попробовать снова
+            {t.landing.loginRetry}
           </Button>
         </div>
       )}

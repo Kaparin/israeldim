@@ -1,8 +1,10 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { TranslateButton } from "./translate-button";
 
 interface QuestionViewProps {
+  questionId: string;
   questionNum: number;
   text: string;
   options: string[];
@@ -14,6 +16,7 @@ interface QuestionViewProps {
 }
 
 export function QuestionView({
+  questionId,
   questionNum,
   text,
   options,
@@ -25,21 +28,27 @@ export function QuestionView({
 }: QuestionViewProps) {
   return (
     <div className="space-y-4">
-      <h2 className="text-lg font-medium leading-snug" dir="rtl">
-        <span className="text-muted-foreground font-normal">
-          {questionNum}.{" "}
-        </span>
-        {text}
-      </h2>
+      <div className="space-y-2">
+        <h2 className="text-lg font-medium leading-snug" dir="rtl">
+          <span className="text-muted-foreground font-normal">
+            {questionNum}.{" "}
+          </span>
+          {text}
+        </h2>
+        <TranslateButton
+          text={text}
+          sourceId={`${questionId}-question`}
+          type="question"
+        />
+      </div>
 
-      {/* Question images (diagrams/schemas) */}
       {imageUrls && imageUrls.length > 0 && (
         <div className="space-y-2">
           {imageUrls.map((url, i) => (
             <img
               key={i}
               src={url}
-              alt={`תרשים לשאלה ${questionNum}`}
+              alt={`${questionNum} - ${i + 1}`}
               className="w-full rounded-lg border bg-white"
               loading="lazy"
             />
@@ -70,12 +79,12 @@ export function QuestionView({
           return (
             <Card
               key={index}
-              className={`cursor-pointer transition-all ${borderClass} ${bgClass} ${
-                answered ? "cursor-default" : ""
+              className={`transition-all active:scale-[0.98] ${borderClass} ${bgClass} ${
+                answered ? "pointer-events-none" : "cursor-pointer"
               }`}
               onClick={() => !answered && onSelect(index)}
             >
-              <CardContent className="flex items-center gap-3 py-3 px-4" dir="rtl">
+              <CardContent className="flex items-center gap-3 py-3 px-4 min-h-12" dir="rtl">
                 <div
                   className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium shrink-0 border ${
                     answered && index === correctIndex
