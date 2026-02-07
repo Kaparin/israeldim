@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id          String       @id @default(cuid())
+  telegramId  BigInt       @unique
+  firstName   String
+  lastName    String?
+  username    String?
+  photoUrl    String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  sessions    Session[]
+  testResults TestResult[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Quiz {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  createdAt   DateTime     @default(now())
+  questions   Question[]
+  testResults TestResult[]
+}
+
+model Question {
+  id           String @id @default(cuid())
+  quizId       String
+  text         String
+  options      Json
+  correctIndex Int
+  order        Int
+  quiz         Quiz   @relation(fields: [quizId], references: [id])
+}
+
+model TestResult {
+  id          String   @id @default(cuid())
+  userId      String
+  quizId      String
+  score       Int
+  totalCount  Int
+  answers     Json
+  completedAt DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+  quiz        Quiz     @relation(fields: [quizId], references: [id])
+}
