@@ -138,6 +138,7 @@ export default function QuizPage({
             selectedIndex={selectedIndex}
             correctIndex={question.correctIndex}
             answered={isAnswered}
+            imageUrls={question.imageUrls as string[] | null}
             onSelect={handleSelect}
           />
         )}
@@ -160,36 +161,34 @@ export default function QuizPage({
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
-                <span>!תשובה נכונה</span>
+                <span>תשובה נכונה!</span>
               </div>
             ) : (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-red-600 dark:text-red-400 font-medium">
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                  <span>תשובה לא נכונה</span>
-                </div>
-                {question.answerText && (
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => setShowExplanation(true)}
-                  >
-                    הצג הסבר לתשובה
-                  </Button>
-                )}
+              <div className="flex items-center gap-2 text-red-600 dark:text-red-400 font-medium">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+                <span>תשובה לא נכונה</span>
               </div>
+            )}
+            {(question.answerText || (question.answerImageUrls as string[] | null)?.length) && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setShowExplanation(true)}
+              >
+                הצג הסבר לתשובה
+              </Button>
             )}
           </div>
         )}
@@ -242,6 +241,17 @@ export default function QuizPage({
                 <div className="text-sm leading-relaxed whitespace-pre-wrap border-t pt-4">
                   {question.answerText}
                 </div>
+              )}
+              {(question.answerImageUrls as string[] | null)?.map(
+                (url: string, i: number) => (
+                  <img
+                    key={i}
+                    src={url}
+                    alt={`הסבר לשאלה ${question.questionNum}`}
+                    className="w-full rounded-lg border bg-white"
+                    loading="lazy"
+                  />
+                )
               )}
             </div>
           </DialogContent>

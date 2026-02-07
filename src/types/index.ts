@@ -27,6 +27,8 @@ export interface QuestionData {
   correctIndex: number;
   order: number;
   answerText: string | null;
+  imageUrls: string[] | null;
+  answerImageUrls: string[] | null;
 }
 
 export interface SubmitAnswers {

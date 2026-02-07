@@ -27,6 +27,8 @@ export async function GET(
             correctIndex: true,
             order: true,
             answerText: true,
+            imageUrls: true,
+            answerImageUrls: true,
           },
         },
       },

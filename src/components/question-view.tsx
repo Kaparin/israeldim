@@ -9,6 +9,7 @@ interface QuestionViewProps {
   selectedIndex: number | null;
   correctIndex: number;
   answered: boolean;
+  imageUrls?: string[] | null;
   onSelect: (index: number) => void;
 }
 
@@ -19,6 +20,7 @@ export function QuestionView({
   selectedIndex,
   correctIndex,
   answered,
+  imageUrls,
   onSelect,
 }: QuestionViewProps) {
   return (
@@ -29,6 +31,22 @@ export function QuestionView({
         </span>
         {text}
       </h2>
+
+      {/* Question images (diagrams/schemas) */}
+      {imageUrls && imageUrls.length > 0 && (
+        <div className="space-y-2">
+          {imageUrls.map((url, i) => (
+            <img
+              key={i}
+              src={url}
+              alt={`תרשים לשאלה ${questionNum}`}
+              className="w-full rounded-lg border bg-white"
+              loading="lazy"
+            />
+          ))}
+        </div>
+      )}
+
       <div className="space-y-2">
         {options.map((option, index) => {
           let borderClass = "border-border hover:bg-muted/50";
