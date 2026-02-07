@@ -65,23 +65,23 @@ export default function DashboardPage() {
     <div className="min-h-screen px-4 py-6 max-w-lg mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Тесты</h1>
+          <h1 className="text-2xl font-bold">בחינות רישוי בחשמל</h1>
           {user && (
             <p className="text-sm text-muted-foreground">
-              Привет, {user.firstName}
-              {user.lastName ? ` ${user.lastName}` : ""}!
+              {user.firstName}
+              {user.lastName ? ` ${user.lastName}` : ""} ,שלום
             </p>
           )}
         </div>
         <Button variant="outline" size="sm" onClick={handleLogout}>
-          Выйти
+          יציאה
         </Button>
       </div>
 
       {quizzes.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
-          <p className="text-lg">Пока нет доступных тестов</p>
-          <p className="text-sm mt-1">Загляните позже</p>
+          <p className="text-lg">אין מבחנים זמינים</p>
+          <p className="text-sm mt-1">נסה שוב מאוחר יותר</p>
         </div>
       ) : (
         <div className="space-y-3">

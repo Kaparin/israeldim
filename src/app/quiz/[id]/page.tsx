@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProgressBar } from "@/components/progress-bar";
 import { QuestionView } from "@/components/question-view";
-import type { QuestionData, QuizResult } from "@/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import type { QuestionData } from "@/types";
 
 interface QuizData {
   id: string;
@@ -25,6 +31,8 @@ export default function QuizPage({
   const [quiz, setQuiz] = useState<QuizData | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [answeredSet, setAnsweredSet] = useState<Set<string>>(new Set());
+  const [showExplanation, setShowExplanation] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -57,11 +65,19 @@ export default function QuizPage({
   const question = quiz.questions[currentIndex];
   const isFirst = currentIndex === 0;
   const isLast = currentIndex === quiz.questions.length - 1;
-  const hasAnswer = question && answers[question.id] !== undefined;
+  const isAnswered = question ? answeredSet.has(question.id) : false;
+  const selectedIndex = question ? (answers[question.id] ?? null) : null;
+  const isCorrect =
+    isAnswered && selectedIndex === question?.correctIndex;
+
+  const correctCount = quiz.questions.filter(
+    (q) => answeredSet.has(q.id) && answers[q.id] === q.correctIndex
+  ).length;
 
   const handleSelect = (index: number) => {
-    if (!question) return;
+    if (!question || isAnswered) return;
     setAnswers((prev) => ({ ...prev, [question.id]: index }));
+    setAnsweredSet((prev) => new Set(prev).add(question.id));
   };
 
   const handleNext = () => {
@@ -76,7 +92,7 @@ export default function QuizPage({
     }
   };
 
-  const handleSubmit = async () => {
+  const handleFinish = async () => {
     setSubmitting(true);
     try {
       const res = await fetch(`/api/quiz/${id}/submit`, {
@@ -87,9 +103,7 @@ export default function QuizPage({
 
       if (!res.ok) throw new Error("Submit failed");
 
-      const result: QuizResult = await res.json();
-
-      // Store result in sessionStorage for the results page
+      const result = await res.json();
       sessionStorage.setItem(`quiz-result-${id}`, JSON.stringify(result));
       router.push(`/quiz/${id}/result`);
     } catch (error) {
@@ -101,7 +115,14 @@ export default function QuizPage({
   return (
     <div className="min-h-screen px-4 py-6 max-w-lg mx-auto flex flex-col">
       <div className="mb-6 space-y-4">
-        <h1 className="text-xl font-bold">{quiz.title}</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold" dir="rtl">
+            {quiz.title}
+          </h1>
+          <span className="text-sm text-muted-foreground">
+            {correctCount}/{answeredSet.size}
+          </span>
+        </div>
         <ProgressBar
           current={currentIndex + 1}
           total={quiz.questions.length}
@@ -111,14 +132,70 @@ export default function QuizPage({
       <div className="flex-1">
         {question && (
           <QuestionView
+            questionNum={question.questionNum}
             text={question.text}
             options={question.options as string[]}
-            selectedIndex={answers[question.id] ?? null}
+            selectedIndex={selectedIndex}
+            correctIndex={question.correctIndex}
+            answered={isAnswered}
             onSelect={handleSelect}
           />
         )}
+
+        {/* Feedback section after answering */}
+        {isAnswered && question && (
+          <div className="mt-4 space-y-3">
+            {isCorrect ? (
+              <div className="flex items-center gap-2 text-green-600 dark:text-green-400 font-medium">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                <span>!תשובה נכונה</span>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-red-600 dark:text-red-400 font-medium">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                  <span>תשובה לא נכונה</span>
+                </div>
+                {question.answerText && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setShowExplanation(true)}
+                  >
+                    הצג הסבר לתשובה
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
+      {/* Navigation buttons */}
       <div className="flex gap-3 pt-6 pb-4">
         <Button
           variant="outline"
@@ -126,26 +203,50 @@ export default function QuizPage({
           disabled={isFirst}
           className="flex-1"
         >
-          Назад
+          הקודם
         </Button>
-        {isLast ? (
+        {isLast && isAnswered ? (
           <Button
-            onClick={handleSubmit}
-            disabled={!hasAnswer || submitting}
+            onClick={handleFinish}
+            disabled={submitting}
             className="flex-1"
           >
-            {submitting ? "Отправка..." : "Завершить"}
+            {submitting ? "...שולח" : "סיום"}
           </Button>
         ) : (
           <Button
             onClick={handleNext}
-            disabled={!hasAnswer}
+            disabled={!isAnswered}
             className="flex-1"
           >
-            Далее
+            הבא
           </Button>
         )}
       </div>
+
+      {/* Answer explanation modal */}
+      {question && (
+        <Dialog open={showExplanation} onOpenChange={setShowExplanation}>
+          <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle dir="rtl">
+                הסבר לשאלה {question.questionNum}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4" dir="rtl">
+              <div className="text-sm font-medium text-green-600 dark:text-green-400">
+                תשובה נכונה: {question.correctIndex + 1}.{" "}
+                {(question.options as string[])[question.correctIndex]}
+              </div>
+              {question.answerText && (
+                <div className="text-sm leading-relaxed whitespace-pre-wrap border-t pt-4">
+                  {question.answerText}
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }

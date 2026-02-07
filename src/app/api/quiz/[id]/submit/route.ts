@@ -51,10 +51,12 @@ export async function POST(
       totalCount: quiz.questions.length,
       questions: quiz.questions.map((q) => ({
         id: q.id,
+        questionNum: q.questionNum,
         text: q.text,
         options: q.options,
         correctIndex: q.correctIndex,
         selectedIndex: answers[q.id] ?? -1,
+        answerText: q.answerText,
       })),
     });
   } catch (error) {

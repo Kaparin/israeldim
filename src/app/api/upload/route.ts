@@ -47,6 +47,7 @@ export async function POST(request: Request) {
         title: title || file.name.replace(".pdf", ""),
         questions: {
           create: questions.map((q, i) => ({
+            questionNum: i + 1,
             text: q.text,
             options: q.options,
             correctIndex: q.correctIndex,

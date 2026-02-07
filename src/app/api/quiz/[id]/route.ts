@@ -21,9 +21,12 @@ export async function GET(
           orderBy: { order: "asc" },
           select: {
             id: true,
+            questionNum: true,
             text: true,
             options: true,
+            correctIndex: true,
             order: true,
+            answerText: true,
           },
         },
       },

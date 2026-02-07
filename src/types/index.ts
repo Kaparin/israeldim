@@ -21,9 +21,12 @@ export interface QuizWithMeta {
 
 export interface QuestionData {
   id: string;
+  questionNum: number;
   text: string;
   options: string[];
+  correctIndex: number;
   order: number;
+  answerText: string | null;
 }
 
 export interface SubmitAnswers {
@@ -31,9 +34,9 @@ export interface SubmitAnswers {
 }
 
 export interface QuizResult {
+  resultId: string;
   score: number;
   totalCount: number;
-  answers: Record<string, number>;
   questions: {
     id: string;
     text: string;

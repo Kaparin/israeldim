@@ -51,13 +51,17 @@ model Quiz {
 }
 
 model Question {
-  id           String @id @default(cuid())
-  quizId       String
-  text         String
-  options      Json
-  correctIndex Int
-  order        Int
-  quiz         Quiz   @relation(fields: [quizId], references: [id])
+  id              String  @id @default(cuid())
+  quizId          String
+  questionNum     Int
+  text            String
+  options         Json
+  correctIndex    Int
+  order           Int
+  imageUrls       Json?
+  answerText      String?
+  answerImageUrls Json?
+  quiz            Quiz    @relation(fields: [quizId], references: [id])
 }
 
 model TestResult {

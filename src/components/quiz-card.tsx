@@ -11,7 +11,9 @@ export function QuizCard({ quiz }: { quiz: QuizWithMeta }) {
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
-          <CardTitle className="text-lg leading-tight">{quiz.title}</CardTitle>
+          <CardTitle className="text-lg leading-tight" dir="rtl">
+            {quiz.title}
+          </CardTitle>
           {quiz.completed && (
             <Badge variant="secondary" className="shrink-0">
               {quiz.lastScore}/{quiz.lastTotal}
@@ -21,17 +23,17 @@ export function QuizCard({ quiz }: { quiz: QuizWithMeta }) {
       </CardHeader>
       <CardContent className="space-y-3">
         {quiz.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2">
+          <p className="text-sm text-muted-foreground line-clamp-2" dir="rtl">
             {quiz.description}
           </p>
         )}
         <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">
-            {quiz.questionCount} вопросов
+          <span className="text-sm text-muted-foreground" dir="rtl">
+            {quiz.questionCount} שאלות
           </span>
           <Button asChild size="sm">
             <Link href={`/quiz/${quiz.id}`}>
-              {quiz.completed ? "Пройти снова" : "Начать"}
+              {quiz.completed ? "נסה שוב" : "התחל"}
             </Link>
           </Button>
         </div>

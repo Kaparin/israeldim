@@ -29,15 +29,30 @@ export default function ResultPage({
   if (!result) return null;
 
   const percentage = Math.round((result.score / result.totalCount) * 100);
+  const passed = percentage >= 60;
 
   return (
     <div className="min-h-screen px-4 py-6 max-w-lg mx-auto">
       <div className="text-center mb-8 space-y-3">
-        <h1 className="text-2xl font-bold">Результат</h1>
-        <div className="text-5xl font-bold">{percentage}%</div>
-        <p className="text-muted-foreground">
-          {result.score} из {result.totalCount} правильных ответов
+        <h1 className="text-2xl font-bold">תוצאות</h1>
+        <div
+          className={`text-5xl font-bold ${
+            passed
+              ? "text-green-600 dark:text-green-400"
+              : "text-red-600 dark:text-red-400"
+          }`}
+        >
+          {percentage}%
+        </div>
+        <p className="text-muted-foreground" dir="rtl">
+          {result.score} מתוך {result.totalCount} תשובות נכונות
         </p>
+        <Badge
+          variant={passed ? "default" : "destructive"}
+          className="text-sm px-4 py-1"
+        >
+          {passed ? "עבר" : "נכשל"}
+        </Badge>
       </div>
 
       <div className="space-y-3 mb-8">
@@ -52,7 +67,7 @@ export default function ResultPage({
                   : "border-red-500/50 bg-red-50 dark:bg-red-950/20"
               }
             >
-              <CardContent className="py-3 px-4 space-y-2">
+              <CardContent className="py-3 px-4 space-y-2" dir="rtl">
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-sm font-medium">
                     {i + 1}. {q.text}
@@ -61,18 +76,18 @@ export default function ResultPage({
                     variant={isCorrect ? "default" : "destructive"}
                     className="shrink-0"
                   >
-                    {isCorrect ? "Верно" : "Неверно"}
+                    {isCorrect ? "נכון" : "שגוי"}
                   </Badge>
                 </div>
                 <div className="text-sm space-y-1">
                   {!isCorrect && q.selectedIndex >= 0 && (
                     <p className="text-red-600 dark:text-red-400">
-                      Ваш ответ: {q.options[q.selectedIndex]}
+                      בחרת: {(q.options as string[])[q.selectedIndex]}
                     </p>
                   )}
                   {!isCorrect && (
                     <p className="text-green-600 dark:text-green-400">
-                      Правильный: {q.options[q.correctIndex]}
+                      נכון: {(q.options as string[])[q.correctIndex]}
                     </p>
                   )}
                 </div>
@@ -83,7 +98,7 @@ export default function ResultPage({
       </div>
 
       <Button asChild className="w-full">
-        <Link href="/dashboard">Вернуться к тестам</Link>
+        <Link href="/dashboard">חזרה למבחנים</Link>
       </Button>
     </div>
   );
